@@ -21,7 +21,7 @@ function Heart({saved,onPress,label}){
   <View style={{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.45)',alignItems:'center',justifyContent:'center'}}>
    <Icon name={saved?'heart':'heart-outline'} size={20} color={saved?C.crimson:'#fff'}/></View></AP>)}
 
-// Same props as the old ListingCard (item,width,saved,onOpen,onStar) so List/Saved keep working. Contact details stay locked; agent shown by ID only.
+// Same props as the old ListingCard (item,width,saved,onOpen,onStar) so List/Saved keep working. Contact details stay locked; agent shown by name + ID only.
 function PropertyCard({item,width,saved,onOpen,onStar}){
  const C=useC(),pt=propType(item),[offer,setOffer]=useState(false),sc=useSharedValue(1),a=useAnimatedStyle(()=>({transform:[{scale:sc.value}]}));
  const u=sized(cover(item),width?480:900),place=[item.subtitle,item.city].filter(Boolean).join(' · ');
@@ -47,7 +47,7 @@ function PropertyCard({item,width,saved,onOpen,onStar}){
     {!!place&&<View style={{flexDirection:'row',alignItems:'center',gap:4,marginTop:3}}><Icon name="map-marker" size={15} color={C.crimson}/><Text numberOfLines={1} style={[type.small,{color:C.mute,flex:1}]}>{place}</Text></View>}
     {stats.length>0&&<View style={{flexDirection:'row',gap:16,marginTop:10}}>{stats.map(([ic,v])=><View key={ic} style={{flexDirection:'row',alignItems:'center',gap:5}}><Icon name={ic} size={17} color={C.mute}/><Text style={[type.smallB,{color:C.tx}]}>{v}</Text></View>)}</View>}
     <View style={{marginTop:12,paddingTop:12,borderTopWidth:1,borderTopColor:C.line}}>
-     <Text style={[type.captionB,{color:C.mute}]}>Agent ID · {agentId(item)}</Text>
+     <View style={{flexDirection:'row',alignItems:'center',gap:5}}>{!!item.agent_verified&&<Icon name="check-decagram" size={15} color={C.gold}/>}<Text numberOfLines={1} style={[type.captionB,{color:C.mute,flex:1}]}>{item.agent_name?`${item.agent_name}${item.agent_verified?' · Verified':''} · ${agentId(item)}`:`Agent ID · ${agentId(item)}`}</Text></View>
      <View style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:2}} accessible accessibilityLabel="Contact details locked"><Icon name="lock" size={13} color={C.gold}/><Text style={[type.caption,{color:C.mute}]}>+92 ••• ••••••• · unlock with Pro plan</Text></View>
      <View style={{marginTop:10}}><GradientButton title="Place Your Offer First" icon="flash" height={48} onPress={openOffer}/></View></View>
    </View></AP>

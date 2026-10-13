@@ -73,7 +73,7 @@ export default function DetailScreen({navigation,route}){
     <GlassCard r={20} padding={16} style={{marginTop:24}}>
      <View style={{flexDirection:'row',alignItems:'center',gap:12}}>
       <View style={{width:44,height:44,borderRadius:22,backgroundColor:C.tint,alignItems:'center',justifyContent:'center'}}><Icon name="account-tie-outline" size={22} color={C.crimson}/></View>
-      <View style={{flex:1}}><Text style={[type.smallB,{color:C.tx}]}>Listed by Agent ID · {agentId(x)}</Text>
+      <View style={{flex:1}}><View style={{flexDirection:'row',alignItems:'center',gap:5}}><Text style={[type.smallB,{color:C.tx}]}>{x.agent_name?`Listed by ${x.agent_name} · ${agentId(x)}`:`Listed by Agent ID · ${agentId(x)}`}</Text>{!!x.agent_verified&&<Icon name="check-decagram" size={16} color={C.gold}/>}</View>
        <View style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:2}}><Icon name="lock" size={13} color={C.gold}/><Text style={[type.caption,{color:C.mute}]}>Contact details unlock with a paid SAIR Pro plan</Text></View></View></View></GlassCard>
    </View></ScrollView>
 
