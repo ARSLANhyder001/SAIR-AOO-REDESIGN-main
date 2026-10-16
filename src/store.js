@@ -38,7 +38,8 @@ export function AppProvider({children}){
   const {error:e}=had?await supabase.from('favorites').delete().eq('listing_id',id):await supabase.from('favorites').insert({listing_id:id});
   if(e){apply(had);notify('Could not update Saved','Please try again.')}
   return true},[user,favs]);
- const published=useMemo(()=>listings.filter(isLive),[listings]);// hides expired listings even if the DB job has not run yet
+ // hides expired listings even if the DB job has not run yet; verified agents first, newest first inside each group
+ const published=useMemo(()=>listings.filter(isLive).sort((a,b)=>(b.agent_verified?1:0)-(a.agent_verified?1:0)||new Date(b.created_at)-new Date(a.created_at)),[listings]);
  const isPaid=role==='admin'||plan.paid,canManage=role==='admin'||role==='agent';
  const refreshProfile=useCallback(()=>loadUser(user),[user,loadUser]);// agent asks: "did SAIR approve me yet?"
  const value=useMemo(()=>({listings,published,user,role,agentStatus,canManage,refreshProfile,plan,isPaid,favs,reload,toggleFav,loading,error}),[listings,published,user,role,agentStatus,canManage,refreshProfile,plan,isPaid,favs,reload,toggleFav,loading,error]);

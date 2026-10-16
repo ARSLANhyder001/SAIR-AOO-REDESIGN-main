@@ -32,6 +32,7 @@ import SubscribersScreen from './src/screens/SubscribersScreen';
 import AgentRequestScreen from './src/screens/AgentRequestScreen';
 import AgentOffersScreen from './src/screens/AgentOffersScreen';
 import AgentsAdminScreen from './src/screens/AgentsAdminScreen';
+import CommissionsScreen from './src/screens/CommissionsScreen';
 import FloatingTabBar from './src/components/FloatingTabBar';
 const Tab=createBottomTabNavigator(),Stack=createNativeStackNavigator();
 function Tabs(){return(<Tab.Navigator tabBar={p=><FloatingTabBar {...p}/>} screenOptions={{headerShown:false}}>
@@ -58,6 +59,7 @@ function Root(){
    <Stack.Screen name="AgentRequest" component={AgentRequestScreen} options={{title:'Agent account'}}/>
    <Stack.Screen name="AgentOffers" component={AgentOffersScreen} options={{title:'Offers on my listings'}}/>
    <Stack.Screen name="AgentsAdmin" component={AgentsAdminScreen} options={{title:'Agents'}}/>
+   <Stack.Screen name="Commissions" component={CommissionsScreen} options={{title:'Commissions'}}/>
    <Stack.Screen name="Subscribers" component={SubscribersScreen} options={{title:'Subscribers'}}/></Stack.Navigator></NavigationContainer></AppProvider></SafeAreaProvider>)}
 export default function App(){
  const [ok]=useFonts({PlusJakartaSans_400Regular,PlusJakartaSans_600SemiBold,PlusJakartaSans_700Bold});

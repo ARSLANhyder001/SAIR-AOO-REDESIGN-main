@@ -10,16 +10,21 @@ import OfferSheet from './OfferSheet';
 import {useC,type,cover,sized,priceText,isNew,AREA,agentId} from '../theme';
 import {propType,TYPE_LABEL} from '../lib/propertyMeta';
 import {tap} from '../lib/haptics';
-const AP=Animated.createAnimatedComponent(Pressable);
+
+// FIX: plain Pressable (no createAnimatedComponent). Animations live on Animated.View wrappers instead.
+const AP=Pressable;
 
 const Badge=({text,bg,fg='#fff'})=><View style={{backgroundColor:bg,paddingHorizontal:10,paddingVertical:4,borderRadius:999}}><Text style={[type.captionB,{color:fg}]}>{text}</Text></View>;
 
 function Heart({saved,onPress,label}){
  const C=useC(),s=useSharedValue(1),a=useAnimatedStyle(()=>({transform:[{scale:s.value}]}));
- return(<AP accessibilityRole="button" accessibilityLabel={label} onPress={()=>{tap();s.value=withSequence(withSpring(1.35,{damping:6,stiffness:400}),withSpring(1,{damping:8}));onPress()}}
-  style={[{width:48,height:48,alignItems:'center',justifyContent:'center'},a]}>
-  <View style={{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.45)',alignItems:'center',justifyContent:'center'}}>
-   <Icon name={saved?'heart':'heart-outline'} size={20} color={saved?C.crimson:'#fff'}/></View></AP>)}
+ return(<Animated.View style={[{width:48,height:48},a]}>
+  <Pressable accessibilityRole="button" accessibilityLabel={label}
+   onPress={()=>{tap();s.value=withSequence(withSpring(1.35,{damping:6,stiffness:400}),withSpring(1,{damping:8}));onPress()}}
+   style={{width:48,height:48,alignItems:'center',justifyContent:'center'}}>
+   <View style={{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.45)',alignItems:'center',justifyContent:'center'}}>
+    <Icon name={saved?'heart':'heart-outline'} size={20} color={saved?C.crimson:'#fff'}/></View>
+  </Pressable></Animated.View>)}
 
 // Same props as the old ListingCard (item,width,saved,onOpen,onStar) so List/Saved keep working. Contact details stay locked; agent shown by name + ID only.
 function PropertyCard({item,width,saved,onOpen,onStar}){

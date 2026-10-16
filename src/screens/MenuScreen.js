@@ -12,7 +12,7 @@ export default function MenuScreen({navigation}){
  const rows=[['Projects','crane','List',{kind:'project'}],['Properties','office-building-outline','List',{kind:'property'}],['Buy / Sell / Rent','home-city-outline','BuySell'],['Contact SAIR','phone-outline','Contact'],['My offers','flash-outline','MyOffers'],['SAIR Pro plan','crown-outline','Plans'],['Notifications','bell-outline','Notifications'],
   ...(role==='agent'?[['My listings','view-list-outline','MyListings'],['Add property','plus-circle-outline','AddListing'],['Offers on my listings','flash','AgentOffers']]:[]),
   ...(role!=='admin'&&role!=='agent'?[[role==='user'&&user?'Become an agent':'Agent account','account-tie-outline','AgentRequest']]:[]),
-  ...(role==='admin'?[['Admin dashboard','view-dashboard-outline','Admin'],['Add property','plus-circle-outline','AddListing'],['My listings','view-list-outline','MyListings'],['Offers & messages','flash','Inbox'],['Agents','account-check-outline','AgentsAdmin'],['Disputes','gavel','Disputes'],['Subscribers','crown-outline','Subscribers']]:[])];
+  ...(role==='admin'?[['Admin dashboard','view-dashboard-outline','Admin'],['Add property','plus-circle-outline','AddListing'],['My listings','view-list-outline','MyListings'],['Offers & messages','flash','Inbox'],['Agents','account-check-outline','AgentsAdmin'],['Commissions','cash-multiple','Commissions'],['Disputes','gavel','Disputes'],['Subscribers','crown-outline','Subscribers']]:[])];
  return(<Screen tab><H>More</H>
   {rows.map(([l,ic,n,p])=>(<Pressable key={l} accessibilityRole="button" accessibilityLabel={l} onPress={go(n,p)} style={{marginBottom:10}}>
    <GlassCard r={18} padding={12}><View style={{flexDirection:'row',alignItems:'center',gap:14,minHeight:48}}>
