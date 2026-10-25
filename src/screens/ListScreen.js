@@ -10,7 +10,7 @@ import {PropertyCardSkeleton} from '../components/Skeleton';
 import {ErrorBox,Empty} from '../components/ui';
 import {useApp} from '../store';
 import {useC,type} from '../theme';
-import {TYPE_PILLS} from '../lib/propertyMeta';
+import {TYPE_PILLS,coordsOf} from '../lib/propertyMeta';
 import {DEFAULT_FILTERS,buildIndex,runFilter,activeCount} from '../lib/filters';
 import {tap} from '../lib/haptics';
 
@@ -18,13 +18,22 @@ const Pill=({label,on,onPress})=>{const C=useC();return(
  <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{selected:on}} style={{minHeight:44,paddingHorizontal:16,justifyContent:'center',borderRadius:999,borderWidth:1,borderColor:on?C.crimson:C.glassBorder,backgroundColor:on?C.crimson:C.glassFill}}>
   <Text style={[type.smallB,{color:on?'#fff':C.tx}]}>{label}</Text></Pressable>)};
 
+const inMapBounds=(item,bounds)=>{
+ const point=coordsOf(item);
+ if(!point)return false;
+ const insideLongitude=bounds.west<=bounds.east
+  ?point.lng>=bounds.west&&point.lng<=bounds.east
+  :point.lng>=bounds.west||point.lng<=bounds.east;
+ return point.lat>=bounds.south&&point.lat<=bounds.north&&insideLongitude;
+};
+
 export default function ListScreen({navigation,route}){
  const C=useC(),{published,favs,toggleFav,loading,error,reload}=useApp();
- const [q,setQ]=useState(''),[f,setF]=useState(DEFAULT_FILTERS),[sheet,setSheet]=useState(false),[mode,setMode]=useState('list'),[rf,setRf]=useState(false);
- useEffect(()=>{const p=route.params;if(!p)return;setQ(p.q||'');setF(v=>({...DEFAULT_FILTERS,feats:[],type:p.type||'all',kind:p.kind||'all',purpose:p.purpose||'all'}))},[route.params]);
+ const [q,setQ]=useState(''),[f,setF]=useState(DEFAULT_FILTERS),[sheet,setSheet]=useState(false),[mode,setMode]=useState('list'),[rf,setRf]=useState(false),[mapBounds,setMapBounds]=useState(null),[mapMoved,setMapMoved]=useState(false);
+ useEffect(()=>{const p=route.params;if(!p)return;setQ(p.q||'');setF(v=>({...DEFAULT_FILTERS,feats:[],type:p.type||'all',kind:p.kind||'all',purpose:p.purpose||'all'}));setMapBounds(null);setMapMoved(false)},[route.params]);
  const txt=useDeferredValue(q.trim().toLowerCase()),index=useMemo(()=>buildIndex(published),[published]);
  const cities=useMemo(()=>[['all','All cities'],...[...new Set(published.map(x=>x.city).filter(Boolean))].map(c=>[c,c])],[published]);
- const rows=useMemo(()=>runFilter(index,f,txt),[index,f,txt]),n=activeCount(f),set=k=>v=>{tap();setF(p=>({...p,[k]:v}))};
+ const rows=useMemo(()=>runFilter(index,f,txt),[index,f,txt]),visibleRows=useMemo(()=>mapBounds?rows.filter(x=>inMapBounds(x,mapBounds)):rows,[rows,mapBounds]),n=activeCount(f),set=k=>v=>{tap();setF(p=>({...p,[k]:v}))};
  const star=useCallback(async id=>{if(!(await toggleFav(id)))navigation.navigate('Account')},[toggleFav,navigation]);
  const open=useCallback(id=>navigation.navigate('Detail',{id}),[navigation]);
  const refresh=async()=>{setRf(true);await reload();setRf(false)};
@@ -35,7 +44,7 @@ export default function ListScreen({navigation,route}){
    <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
     <Text accessibilityRole="header" style={[type.h2,{color:C.tx}]}>Search</Text>
     <View style={{flexDirection:'row',borderRadius:999,borderWidth:1,borderColor:C.glassBorder,backgroundColor:C.glassFill,padding:3}}>
-     {[['list','format-list-bulleted','List'],['map','map-marker-radius-outline','Map']].map(([k,ic,l])=><Pressable key={k} onPress={()=>{tap();setMode(k)}} accessibilityRole="button" accessibilityState={{selected:mode===k}} accessibilityLabel={`${l} view`}
+     {[['list','format-list-bulleted','List'],['map','map-marker-radius-outline','Map']].map(([k,ic,l])=><Pressable key={k} onPress={()=>{tap();setMode(k);setMapMoved(false)}} accessibilityRole="button" accessibilityState={{selected:mode===k}} accessibilityLabel={`${l} view`}
       style={{minHeight:44,paddingHorizontal:14,borderRadius:999,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:mode===k?C.crimson:'transparent'}}><Icon name={ic} size={18} color={mode===k?'#fff':C.tx}/><Text style={[type.smallB,{color:mode===k?'#fff':C.tx}]}>{l}</Text></Pressable>)}</View></View>
    <GlassCard r={999} style={{marginTop:12,flexDirection:'row',alignItems:'center',minHeight:52,paddingLeft:16,paddingRight:6,gap:10}}>
     <Icon name="magnify" size={22} color={C.mute}/>
@@ -48,14 +57,15 @@ export default function ListScreen({navigation,route}){
    {TYPE_PILLS.map(([k,l])=><Pill key={k} label={l} on={f.type===k} onPress={()=>set('type')(k)}/>)}</ScrollView>
   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{flexGrow:0,marginTop:8}} contentContainerStyle={{paddingHorizontal:16,gap:8,alignItems:'center'}}>
    {[['all','Buy & Rent'],['sale','Buy'],['rent','Rent']].map(([k,l])=><Pill key={k} label={l} on={f.purpose===k} onPress={()=>set('purpose')(k)}/>)}
-   <Text style={[type.small,{color:C.mute,marginLeft:6}]}>{loading?'Loading…':`${rows.length} ${rows.length===1?'listing':'listings'}`}</Text></ScrollView>
+   <Text style={[type.small,{color:C.mute,marginLeft:6}]}>{loading?'Loading…':`${visibleRows.length} ${visibleRows.length===1?'listing':'listings'}`}</Text>
+   {!!mapBounds&&<Pressable onPress={()=>setMapBounds(null)} accessibilityRole="button" accessibilityLabel="Clear map area filter" style={{minHeight:44,justifyContent:'center',paddingHorizontal:8}}><Text style={[type.smallB,{color:C.red2}]}>Clear map area</Text></Pressable>}</ScrollView>
 
   <View style={{flex:1,marginTop:8}}>
    {mode==='map'
-    ?(loading?<View style={{padding:16}}><PropertyCardSkeleton/></View>:<PropertyMap interactive items={rows.filter(x=>x.kind==='property'||f.kind!=='property')} onOpen={open} style={{flex:1}}/>)
-    :<FlatList data={loading||(error&&!published.length)?[]:rows} keyExtractor={x=>x.id} renderItem={render} keyboardShouldPersistTaps="handled"
+    ?(loading?<View style={{padding:16}}><PropertyCardSkeleton/></View>:<PropertyMap interactive items={rows.filter(x=>x.kind==='property'||f.kind!=='property')} onOpen={open} mapMoved={mapMoved} onMapMoved={()=>setMapMoved(true)} onSearchArea={bounds=>{setMapBounds(bounds);setMapMoved(false)}} style={{flex:1}}/>)
+    :<FlatList data={loading||(error&&!published.length)?[]:visibleRows} keyExtractor={x=>x.id} renderItem={render} keyboardShouldPersistTaps="handled"
       contentContainerStyle={{padding:16,paddingBottom:120}} initialNumToRender={4} maxToRenderBatch={4} windowSize={7} removeClippedSubviews
       refreshControl={<RefreshControl refreshing={rf} onRefresh={refresh} tintColor={C.crimson}/>}
       ListEmptyComponent={loading?<><PropertyCardSkeleton/><PropertyCardSkeleton/></>:error&&!published.length?<ErrorBox text="Could not load listings. Check your internet." onRetry={reload}/>
-       :<View><Empty text="Nothing matches these filters."/>{(n>0||f.type!=='all'||f.purpose!=='all')&&<Pressable onPress={()=>setF(DEFAULT_FILTERS)} accessibilityRole="button" style={{alignSelf:'center',minHeight:48,justifyContent:'center'}}><Text style={[type.smallB,{color:C.red2}]}>Clear all filters</Text></Pressable>}</View>}/>}</View>
+       :<View><Empty text={mapBounds?'No listings in this map area.':'Nothing matches these filters.'}/>{(n>0||f.type!=='all'||f.purpose!=='all'||mapBounds)&&<Pressable onPress={()=>{setF(DEFAULT_FILTERS);setMapBounds(null)}} accessibilityRole="button" style={{alignSelf:'center',minHeight:48,justifyContent:'center'}}><Text style={[type.smallB,{color:C.red2}]}>Clear filters and map area</Text></Pressable>}</View>}/>}</View>
   {sheet&&<FilterSheet value={f} index={index} txt={txt} cities={cities} onApply={apply} onClose={closeSheet}/>}</SafeAreaView>)}

@@ -4,6 +4,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Image} from 'expo-image';
 import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
 import {Field,Empty} from '../components/ui';
+import PropertyMap from '../components/PropertyMap';
 import MultiChips from '../components/MultiChips';
 import GradientButton from '../components/GradientButton';
 import {supabase} from '../lib/supabase';
@@ -11,7 +12,7 @@ import {pickAndUpload,removeImage} from '../lib/images';
 import {notify} from '../lib/dialog';
 import {useApp} from '../store';
 import {useC,type,AREA} from '../theme';
-import {CATEGORY_OPTS,TYPE_OPTS,FEATURES,parseCoords} from '../lib/propertyMeta';
+import {CATEGORY_OPTS,TYPE_OPTS,FEATURES,parseCoords,coordsOf} from '../lib/propertyMeta';
 import {success,tap} from '../lib/haptics';
 import {LISTING_DAYS} from '../lib/plans';
 const MAX=10,STEPS=['Basics','Details','Location','Photos'];
@@ -28,7 +29,7 @@ export default function AddListingScreen({navigation,route}){
  const check=s=>{
   if(s===0&&f.title.trim().length<2)return notify('Title needed','Give the listing a short title.'),false;
   if(s===1&&[f.price,f.bedrooms,f.bathrooms,f.area_size,f.floors,f.year_built].some(v=>v!==''&&isNaN(Number(v))))return notify('Check numbers','Price, rooms, area, floors and year must be numbers.'),false;
-  if(s===2&&f.coords.trim()&&!parseCoords(f.coords))return notify('Check location','Paste coordinates like 25.3960, 68.3578 (long-press a spot in Google Maps and copy the numbers).'),false;
+  if(s===2&&f.coords.trim()&&!parseCoords(f.coords))return notify('Check location','The selected map location is invalid. Tap the property location on the map again.'),false;
   return true};
  const next=()=>{if(!check(step))return;tap();setStep(s=>Math.min(3,s+1))};
  const addPhotos=async()=>{if(f.images.length>=MAX)return notify('Limit reached',`Up to ${MAX} photos per listing.`);setBusy(true);
@@ -77,8 +78,10 @@ export default function AddListingScreen({navigation,route}){
      {isProp&&<>{lbl('FEATURES & FACILITIES')}<MultiChips multi options={FEATURES} value={f.features} onChange={set('features')}/></>}</>}
     {step===2&&<>
      <Field placeholder="Full address (optional)" value={f.address} onChangeText={set('address')} maxLength={200}/>
-     <Field placeholder="Map location, e.g. 25.3960, 68.3578" value={f.coords} onChangeText={set('coords')} autoCapitalize="none" keyboardType="numbers-and-punctuation"/>
-     <Text style={[type.caption,{color:C.mute,marginBottom:10}]}>Tip: in Google Maps long-press the spot, then copy the two numbers shown on top. Leave empty to show an approximate pin from the city.</Text>
+     <Text style={[type.captionB,{color:C.tx,marginTop:12,marginBottom:8}]}>PIN PROPERTY LOCATION</Text>
+     <Text style={[type.caption,{color:C.mute,marginBottom:10}]}>Move and zoom the map, then tap the property location. The map starts near the city when available.</Text>
+     <PropertyMap items={[]} height={280} selectable selectedCoordinates={f.coords} initialCenter={coordsOf({city:f.city})} onCoordinateSelect={({lat,lng})=>setF(p=>({...p,coords:`${lat.toFixed(6)}, ${lng.toFixed(6)}`}))}/>
+     <Text style={[type.caption,{color:C.mute,marginTop:8,marginBottom:10}]}>{f.coords?`Selected coordinates: ${f.coords}`:'Tap the map to drop a property pin.'}</Text>
      <Field placeholder="Description" multiline value={f.description} onChangeText={set('description')} maxLength={3000}/></>}
     {step===3&&<>
      {lbl(`PHOTOS ${f.images.length}/${MAX} · tap a photo to make it the cover`)}

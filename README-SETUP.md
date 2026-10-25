@@ -6,18 +6,20 @@
 3. **Supabase → SQL Editor:** run these once, in order: `migration_03_property_details.sql`, then `migration_04_offers_disputes_plans.sql` (offers, disputes, listing expiry, paid plans, contact unlock).
 4. `npx expo start -c` and open in Expo Go (iOS / Android).
 
+Before deploying the public website or mobile app's website-feature toggle, apply the local `migration_08_public_web.sql` in Supabase SQL Editor. That SQL file is intentionally excluded from the Git push per request.
+
 ## What is inside
 - Theme: `src/theme` (crimson/black/gold, dark + light + system, Plus Jakarta Sans)
-- Tabs: floating glass bar (Home, Search, Saved, Account, More)
+- Tabs: floating glass bar (Home, Search, Saved, Account, More). Search map view lets users pan to an area, tap “Search this area”, and see matching listings in both map and list views.
 - Home: animated hero, services, coverflow carousel, latest properties, map, count-up stats, CTA
 - Search: type pills (All, Residential, Commercial, Plot, Flat, House, Farm House, Agriculture Land, Office Space), filter sheet, list/map switch
-- Property details: full details, features, location map (full screen), nearby places, instalment estimate, services, sticky action bar
+- Property details: full details, features, location map (full screen), nearby places, instalment estimate, services, sticky action bar. Maps use the public OpenFreeMap service (free, no API key; no SLA guarantee).
 - "Place Your Offer First": every property → saved in `inquiries` (type `offer`) → Admin > Offers
 - Admin (role = admin): Dashboard, Add property (4-step form), My listings, Offers & messages inbox, Notifications
 - Account: login / signup / Google / reset password, profile, dark-light toggle
 
-## Admin map locations
-In Add property → Location, paste `lat, lng` copied from Google Maps. Without it, the pin is approximate (city centre).
+## Listing map locations
+In Add property → Location, pan/zoom the map and tap the property spot to set its pin in the app. Coordinates are saved to the listing and used by map views. Without an exact pin, map views use an approximate city pin.
 
 ## Offers, expiry, disputes, plans (migration_04)
 - Offer = amount + validity (24h-15d) + advance/final payment schedule (days after acceptance) + accepted terms (`src/lib/terms.js`, have your advocate review).

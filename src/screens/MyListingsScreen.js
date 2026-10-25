@@ -17,11 +17,15 @@ import {propType,TYPE_LABEL} from '../lib/propertyMeta';
 import BottomSheet from '../components/BottomSheet';
 import {LISTING_DAYS,daysLeft} from '../lib/plans';
 export default function MyListingsScreen({navigation}){
- const C=useC(),{role,user,listings,reload}=useApp(),[f,setF]=useState('all'),[rf,setRf]=useState(false),[relist,setRelist]=useState(null),[days,setDays]=useState('30');
+ const C=useC(),{role,user,listings,reload}=useApp(),[f,setF]=useState('all'),[rf,setRf]=useState(false),[relist,setRelist]=useState(null),[days,setDays]=useState('30'),[featureBusyId,setFeatureBusyId]=useState(null);
  const mine=useMemo(()=>role==='admin'?listings:listings.filter(l=>l.owner_id&&l.owner_id===user?.id),[role,listings,user]);// agents see only their own listings
  const rows=useMemo(()=>mine.filter(l=>{const ex=l.status==='expired'||(l.status==='published'&&l.expires_at&&daysLeft(l.expires_at)<=0);return f==='all'||(f==='expired'?ex:f==='published'?l.status==='published'&&!ex:l.status===f||l.kind===f)}),[mine,f]);
  const doRelist=async()=>{const {error}=await supabase.from('listings').update({status:'published',listed_days:Number(days),expires_at:new Date(Date.now()+Number(days)*864e5).toISOString(),relisted_count:(relist.relisted_count||0)+1}).eq('id',relist.id);error?notify('Error',error.message):(setRelist(null),reload())};
  const toggle=useCallback(async l=>{const pub=l.status!=='published';const {error}=await supabase.from('listings').update(pub?{status:'published',expires_at:new Date(Date.now()+(l.listed_days||30)*864e5).toISOString()}:{status:'draft'}).eq('id',l.id);error?notify('Error',error.message):reload()},[reload]);
+ const toggleFeatured=useCallback(async l=>{if(featureBusyId)return;setFeatureBusyId(l.id);let error;
+  try{({error}=await supabase.from('listings').update({is_featured:!l.is_featured}).eq('id',l.id))}
+  finally{setFeatureBusyId(null)}
+  error?notify('Could not update featured status',error.message):reload()},[featureBusyId,reload]);
  const del=useCallback(l=>confirm('Delete listing?',l.title,async()=>{const {error}=await supabase.from('listings').delete().eq('id',l.id);if(error)return notify('Error',error.message);(l.images||[]).forEach(u=>removeImage(u).catch(()=>{}));reload()}),[reload]);
  if(role!=='admin'&&role!=='agent')return <SafeAreaView style={{flex:1,backgroundColor:C.bg}}><Empty text="Admins and approved agents only." icon="shield-lock-outline"/></SafeAreaView>;
  const render=({item:l})=>{const u=sized(cover(l),300),t=propType(l);return(
@@ -31,6 +35,7 @@ export default function MyListingsScreen({navigation}){
     <View style={{flex:1,gap:3}}><Text numberOfLines={1} style={[type.bodyB,{color:C.tx}]}>{l.title}</Text>
      <Text numberOfLines={1} style={[type.small,{color:C.mute}]}>{[l.kind==='project'?'Project':t?TYPE_LABEL[t]:'Property',l.city,priceText(l,true)].filter(Boolean).join(' · ')}</Text>
      {(()=>{const d=daysLeft(l.expires_at),ex=l.status==='expired'||(l.status==='published'&&d!=null&&d<=0);return <StatusChip label={ex?'Expired · relist to go live':l.status==='published'?`Published${d!=null?` · ${d}d left`:''}`:'Draft'} color={ex?'#EF4444':l.status==='published'?(d!=null&&d<=3?C.gold:C.success):'#8B8B94'}/>})()}</View></View>
+   {role==='admin'&&l.kind==='property'&&<View style={{marginTop:10}}><GradientButton ghost icon={l.is_featured?'star':'star-outline'} title={l.is_featured?'Remove website feature':'Feature on website'} height={46} loading={featureBusyId===l.id} disabled={!!featureBusyId} onPress={()=>toggleFeatured(l)}/></View>}
    <View style={{flexDirection:'row',gap:8,marginTop:10}}>
     <View style={{flex:1}}><GradientButton ghost icon="pencil-outline" title="Edit" height={48} onPress={()=>navigation.navigate('AddListing',{id:l.id})}/></View>
     {(l.status==='expired'||(l.status==='published'&&l.expires_at&&daysLeft(l.expires_at)<=0))

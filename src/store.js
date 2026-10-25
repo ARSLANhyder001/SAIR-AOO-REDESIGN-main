@@ -3,13 +3,14 @@ import {supabase,configured} from './lib/supabase';
 import {readCache,writeCache} from './lib/cache';
 import {notify} from './lib/dialog';
 import {isLive} from './lib/plans';
+const PUBLIC_LISTING_COLUMNS='id,kind,title,subtitle,city,description,price,image_url,hue,status,created_at,images,bedrooms,purpose,bathrooms,area_size,area_unit,category,property_type,address,lat,lng,features,floors,year_built,expires_at,listed_days,is_featured,agent_name,agent_verified';
 const Ctx=createContext(null),KEY='listings:v1';
 export const useApp=()=>useContext(Ctx);
 export function AppProvider({children}){
  const [listings,setListings]=useState([]),[user,setUser]=useState(null),[role,setRole]=useState('user'),[agentStatus,setAgentStatus]=useState('none'),[plan,setPlan]=useState({paid:false,until:null}),[favs,setFavs]=useState(()=>new Set()),[loading,setLoading]=useState(true),[error,setError]=useState(null);
  const uid=useRef(null);
  const reload=useCallback(async()=>{
-  const {data,error:err}=await supabase.from('listings').select('*').order('created_at',{ascending:false});
+  const {data,error:err}=await supabase.from('listings').select(uid.current?'*':PUBLIC_LISTING_COLUMNS).order('created_at',{ascending:false});
   if(err)setError(err.message);
   else{setError(null);setListings(data||[]);writeCache(KEY,(data||[]).filter(l=>l.status==='published'))}// drafts never cached
   setLoading(false)},[]);
