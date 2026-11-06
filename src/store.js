@@ -3,7 +3,7 @@ import {supabase,configured} from './lib/supabase';
 import {readCache,writeCache} from './lib/cache';
 import {notify} from './lib/dialog';
 import {isLive} from './lib/plans';
-const PUBLIC_LISTING_COLUMNS='id,kind,title,subtitle,city,description,price,image_url,hue,status,created_at,images,bedrooms,purpose,bathrooms,area_size,area_unit,category,property_type,address,lat,lng,features,floors,year_built,expires_at,listed_days,is_featured,agent_name,agent_verified';
+const PUBLIC_LISTING_COLUMNS='id,kind,title,subtitle,city,description,price,image_url,status,created_at,images,bedrooms,purpose,bathrooms,area_size,area_unit,category,property_type,address,lat,lng,features,floors,year_built,expires_at,is_featured,agent_name,agent_verified';
 const Ctx=createContext(null),KEY='listings:v1';
 export const useApp=()=>useContext(Ctx);
 export function AppProvider({children}){

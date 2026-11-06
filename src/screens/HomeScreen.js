@@ -41,7 +41,7 @@ function Blob({color,size,top,left,dx,dy,ms}){
  return <Animated.View pointerEvents="none" style={[{position:'absolute',top,left,width:size,height:size,borderRadius:size/2,backgroundColor:color},a]}/>}
 
 export default function HomeScreen({navigation}){
- const C=useC(),ins=useSafeAreaInsets(),{published,favs,toggleFav,loading,error,reload}=useApp();
+ const C=useC(),ins=useSafeAreaInsets(),{published,favs,toggleFav,loading,error,reload,role}=useApp();
  const {unread}=useNotifications(),[q,setQ]=useState(''),[rf,setRf]=useState(false);
  const featured=useMemo(()=>published.filter(x=>x.kind==='project').slice(0,6),[published]);
  const carouselData=featured.length?featured:published.slice(0,6);
@@ -117,4 +117,5 @@ export default function HomeScreen({navigation}){
        <View style={{width:40,height:40,borderRadius:20,backgroundColor:C.tint,alignItems:'center',justifyContent:'center'}}><Icon name={ic} size={20} color={C.crimson}/></View>
        <Text style={[type.small,{color:C.tx,flex:1}]}>{t}</Text></View>))}
      <View style={{marginTop:20}}><GradientButton title="Get Free Quote" icon="arrow-right" onPress={()=>navigation.navigate('Contact')}/></View></GlassCard></Reveal>
+   {role!=='agent'&&role!=='admin'&&<View style={{marginTop:10,paddingHorizontal:spacing.lg}}><GradientButton ghost title="Become an Agent" icon="account-tie-outline" onPress={()=>navigation.navigate('Menu')}/></View>}
   </Animated.ScrollView></GlassProvider>)}
